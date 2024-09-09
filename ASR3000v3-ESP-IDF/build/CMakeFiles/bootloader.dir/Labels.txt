@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/CMakeFiles/bootloader
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/CMakeFiles/bootloader.rule
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/CMakeFiles/bootloader-complete.rule
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
