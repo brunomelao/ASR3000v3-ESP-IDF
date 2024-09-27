@@ -36,12 +36,12 @@ D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/sdmmc/libsdmmc.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_sdmmc/libesp_driver_sdmmc.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_sdspi/libesp_driver_sdspi.a
-D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_sdio/libesp_driver_sdio.a
-D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_dac/libesp_driver_dac.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_rmt/libesp_driver_rmt.a
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_tsens/libesp_driver_tsens.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_sdm/libesp_driver_sdm.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_i2c/libesp_driver_i2c.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_ledc/libesp_driver_ledc.a
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_driver_usb_serial_jtag/libesp_driver_usb_serial_jtag.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/driver/libdriver.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_phy/libesp_phy.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_vfs_console/libesp_vfs_console.a
@@ -78,5 +78,11 @@ D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/nvs_sec_provider/libnvs_sec_provider.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/perfmon/libperfmon.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/spiffs/libspiffs.a
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/touch_element/libtouch_element.a
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/usb/libusb.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/main/libmain.a
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/i2cdev/libi2cdev.a
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/bmp280/libbmp280.a
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/mpu6050/libmpu6050.a
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/nmea_parser/libnmea_parser.a
