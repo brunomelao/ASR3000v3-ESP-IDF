@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "ASR3000v3-ESP-IDF",
-    "project_version":    "21e8242-dirty",
+    "project_version":    "f216ed5-dirty",
     "project_path":       "D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF",
     "idf_path":           "D:/bruno/esp/v5.3/esp-idf",
     "build_dir":          "D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build",

@@ -17,6 +17,6 @@ TaskHandle_t xTaskLora = NULL;
 
 // Status
 uint32_t STATUS = 0; // Ver depois
-
+int32_t tx_ready = pdTRUE;
 // Objeto GPS usado na main e na aquisição de dados
 gps_t gps;

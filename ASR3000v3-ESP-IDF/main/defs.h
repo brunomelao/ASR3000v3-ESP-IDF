@@ -30,6 +30,17 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
+// Include libraries for SD card 
+#include "sys/stat.h"
+#include "nvs_flash.h"
+#include "nvs.h"
+#include "unistd.h"
+#include "sdmmc_cmd.h"
+#include "esp_err.h"
+#include "esp_vfs_fat.h"
+
+
+
 
 #define BUZZER_GPIO 38
 #define BUTTON_GPIO 0
@@ -42,6 +53,7 @@
 #define SD_MISO 13
 #define SD_SCK 12
 #define SD_CS 10
+#define SD_BUFFER_SIZE 512
 #define E220_RX 36
 #define E220_TX 35
 #define E220_AUX 37
@@ -100,6 +112,8 @@ extern TaskHandle_t xTaskLora;
 
 // Status
 extern uint32_t STATUS;
+// Lora tx ready
+extern int32_t tx_ready;
 
 // Objeto GPS usado na main e na aquisição de dados
 extern gps_t gps;

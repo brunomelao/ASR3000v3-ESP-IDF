@@ -3,6 +3,8 @@
 
 void task_aquisicao(void *pvParameters);
 void task_lora(void *pvParameters);
+void task_sd(void *pvParameters);
+
 void app_main(void)
 {
     gpio_set_direction(RBF_GPIO, GPIO_MODE_INPUT);
@@ -14,6 +16,7 @@ void app_main(void)
     gpio_reset_pin(BUZZER_GPIO);
     gpio_set_direction(BUZZER_GPIO, GPIO_MODE_OUTPUT);
 
+    
     // Create Mutexes
     xGPSMutex = xSemaphoreCreateMutex();
     xStatusMutex = xSemaphoreCreateMutex();
@@ -35,6 +38,7 @@ void app_main(void)
 
     xTaskCreate(task_aquisicao, "Aquisicao", configMINIMAL_STACK_SIZE * 4, NULL, 3, NULL);
     xTaskCreate(task_lora, "Lora", configMINIMAL_STACK_SIZE * 4, NULL, 6, &xTaskLora);
+    xTaskCreate(task_sd, "SD", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
 }
 
 void task_aquisicao(void *pvParameters)
@@ -146,8 +150,6 @@ void task_aquisicao(void *pvParameters)
     }
 }
 
-int32_t tx_ready = pdTRUE;
-
 // handle_interrupt_fromisr resumes handle_interrupt_task
 void IRAM_ATTR handle_interrupt_fromisr(void *arg)
 {
@@ -157,11 +159,11 @@ void IRAM_ATTR handle_interrupt_fromisr(void *arg)
 // task_lora reads data from queue and sends it to Lora module
 void task_lora(void *pvParameters)
 {
-    gpio_set_direction((gpio_num_t)E220_AUX, GPIO_MODE_INPUT);
-    gpio_pullup_dis((gpio_num_t)E220_AUX);
-    gpio_set_intr_type((gpio_num_t)E220_AUX, GPIO_INTR_POSEDGE);
+    gpio_set_direction(E220_AUX, GPIO_MODE_INPUT);
+    gpio_pullup_dis(E220_AUX);
+    gpio_set_intr_type(E220_AUX, GPIO_INTR_POSEDGE);
     gpio_install_isr_service(0);
-    gpio_isr_handler_add((gpio_num_t)E220_AUX, handle_interrupt_fromisr, NULL);
+    gpio_isr_handler_add(E220_AUX, handle_interrupt_fromisr, NULL);
 
     uart_config_t uart_config = {
         .baud_rate = 115200,
@@ -190,6 +192,117 @@ void task_lora(void *pvParameters)
         }
         ESP_LOGI("LORA", "sending %d byte packet", E220_BUFFER_SIZE);
         uart_write_bytes(UART_NUM_2, (const void *)buffer, E220_BUFFER_SIZE);
+    }
+}
 
+void task_sd(void *pvParameters) // Código de teste verificar depois 
+{
+    esp_err_t ret;
+
+    // Options for mounting the filesystem.
+    // If format_if_mount_failed is set to true, SD card will be partitioned and
+    // formatted in case when mounting fails.
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = true,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024};
+
+    sdmmc_card_t *card;
+    const char mount_point[] = "/sdcard";
+    ESP_LOGI("SD", "Initializing SD card");
+    // Use settings defined above to initialize SD card and mount FAT filesystem.
+
+    ESP_LOGI("SD", "Using SPI peripheral");
+
+    sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+
+    spi_bus_config_t bus_cfg = {
+        .mosi_io_num = SD_MOSI,
+        .miso_io_num = SD_MISO,
+        .sclk_io_num = SD_SCK,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 4000,
+    };
+    ret = spi_bus_initialize(host.slot, &bus_cfg, SDSPI_DEFAULT_DMA);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE("SD", "Failed to initialize bus.");
+        return;
+    }
+
+    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+    slot_config.gpio_cs = SD_CS;
+    slot_config.host_id = host.slot;
+
+    ESP_LOGI("SD", "Mounting filesystem");
+    ret = esp_vfs_fat_sdspi_mount(mount_point, &host, &slot_config, &mount_config, &card);
+
+    if (ret != ESP_OK)
+    {
+        if (ret == ESP_FAIL)
+        {
+            ESP_LOGE("SD", "Failed to mount filesystem. "
+                             "If you want the card to be formatted, set the CONFIG_EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
+        }
+        else
+        {
+            ESP_LOGE("SD", "Failed to initialize the card (%s). ",
+                     esp_err_to_name(ret));
+        }
+        return;
+    }
+    ESP_LOGI("SD", "Filesystem mounted");
+
+    // Print sd card info
+    sdmmc_card_print_info(stdout, card);
+
+    // Create log file
+    char log_name[32];
+    snprintf(log_name, 32, "%s/flight%ld.bin", mount_point, (long int)0);
+    ESP_LOGI("SD", "Creating file %s", log_name);
+    FILE *f = fopen(log_name, "w");
+    if (f == NULL)
+    {
+        ESP_LOGE("SD", "Failed to open file for writing");
+    }
+    fclose(f);
+
+    while (1)
+    {
+        dados data;
+        dados buffer[SD_BUFFER_SIZE / sizeof(dados)];
+
+        // Read data from queue
+        for (int i = 0; i < SD_BUFFER_SIZE / sizeof(dados); i++)
+        {
+            // Check if landed
+            xSemaphoreTake(xStatusMutex, portMAX_DELAY);
+            if (STATUS & LANDED)
+            {
+                xSemaphoreGive(xStatusMutex);
+                ESP_LOGW("SD", "Landed, unmounting SD card");
+                esp_vfs_fat_sdcard_unmount(mount_point, card);
+                ESP_LOGI("SD", "Card unmounted");
+                vTaskDelete(NULL); // Delete task
+            }
+            else
+                xSemaphoreGive(xStatusMutex);
+
+            xQueueReceive(xSDQueue, &data, portMAX_DELAY);
+            buffer[i] = data;
+        }
+
+        // Write buffer to file
+        ESP_LOGE("SD", "Opening file for writing");
+        f = fopen(log_name, "a");
+        if (f == NULL)
+        {
+            ESP_LOGE("SD", "Failed to open file for writing");
+        }
+        ESP_LOGE("SD", "Writing data to SD card");
+        fwrite(buffer, sizeof(dados), SD_BUFFER_SIZE / sizeof(dados), f);
+        fclose(f);
+        ESP_LOGI("SD", "Data written to SD card");
     }
 }
