@@ -47,7 +47,9 @@ def decode_and_write_to_csv(file_path, output_csv_path):
             else:
                 print("Incomplete data found. Skipping the last incomplete entry.")
 
+
 # Example usage
-input_file_path = 'FLIGHT0.bin'                # Replace with the actual file path
+# input_file_path = 'FLIGHT0.bin'                # Replace with the actual file path
+input_file_path = 'littlefs.bin'                # Replace with the actual file path
 output_csv_path = 'output_data.csv'         # Replace with the desired output CSV file path
 decode_and_write_to_csv(input_file_path, output_csv_path)

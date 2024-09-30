@@ -4,6 +4,7 @@
 void task_aquisicao(void *pvParameters);
 void task_lora(void *pvParameters);
 void task_sd(void *pvParameters);
+void task_littlefs(void *pvParameters);
 
 void app_main(void)
 {
@@ -16,7 +17,6 @@ void app_main(void)
     gpio_reset_pin(BUZZER_GPIO);
     gpio_set_direction(BUZZER_GPIO, GPIO_MODE_OUTPUT);
 
-    
     // Create Mutexes
     xGPSMutex = xSemaphoreCreateMutex();
     xStatusMutex = xSemaphoreCreateMutex();
@@ -39,6 +39,7 @@ void app_main(void)
     xTaskCreate(task_aquisicao, "Aquisicao", configMINIMAL_STACK_SIZE * 4, NULL, 3, NULL);
     xTaskCreate(task_lora, "Lora", configMINIMAL_STACK_SIZE * 4, NULL, 6, &xTaskLora);
     xTaskCreate(task_sd, "SD", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    xTaskCreate(task_littlefs, "LittleFS", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
 }
 
 void task_aquisicao(void *pvParameters)
@@ -105,9 +106,9 @@ void task_aquisicao(void *pvParameters)
 
         // Aquisição de dados do GPS feita via NMEA Parser
         xSemaphoreTake(xGPSMutex, portMAX_DELAY);
-        data.latitude = -21.771706;  // gps.latitude;
-        data.longitude = -43.381260; // gps.longitude;
-        data.gps_altitude = 913.04;  // gps.altitude;
+        data.latitude = gps.latitude;
+        data.longitude = gps.longitude;
+        data.gps_altitude = gps.altitude;
         xSemaphoreGive(xGPSMutex);
 
         // Conversão ADC
@@ -121,15 +122,15 @@ void task_aquisicao(void *pvParameters)
 
         // Print dos dados
         ESP_LOGI("Aquisição", "\tTime: %ld, Status: %ld, V: %.2f\r\n"
-                      "\tBMP\t\tP: %.2f, T: %.2f, A: %.2f\r\n"
-                      "\tAccel\t\tX: %.2f, Y: %.2f, Z: %.2f\r\n"
-                      "\tGyro\t\tX: %.2f, Y: %.2f, Z: %.2f\r\n"
-                      "\tGPS\t\tLat: %.5f, Lon: %.5f, Alt: %.2f",
-         data.time, data.status, data.voltage,
-         data.pressure, data.temperature, data.bmp_altitude,
-         data.accel.x, data.accel.y, data.accel.z,
-         data.rotation.x, data.rotation.y, data.rotation.z,
-         data.latitude, data.longitude, data.gps_altitude);
+                              "\tBMP\t\tP: %.2f, T: %.2f, A: %.2f\r\n"
+                              "\tAccel\t\tX: %.2f, Y: %.2f, Z: %.2f\r\n"
+                              "\tGyro\t\tX: %.2f, Y: %.2f, Z: %.2f\r\n"
+                              "\tGPS\t\tLat: %.5f, Lon: %.5f, Alt: %.2f",
+                 data.time, data.status, data.voltage,
+                 data.pressure, data.temperature, data.bmp_altitude,
+                 data.accel.x, data.accel.y, data.accel.z,
+                 data.rotation.x, data.rotation.y, data.rotation.z,
+                 data.latitude, data.longitude, data.gps_altitude);
 
         // Filas dos dados
         if (!(data.status & LANDED)) // Se não pousou, envia para filas
@@ -192,10 +193,11 @@ void task_lora(void *pvParameters)
         }
         ESP_LOGI("LORA", "sending %d byte packet", E220_BUFFER_SIZE);
         uart_write_bytes(UART_NUM_2, (const void *)buffer, E220_BUFFER_SIZE);
+        vTaskSuspend(NULL);
     }
 }
 
-void task_sd(void *pvParameters) // Código de teste verificar depois 
+void task_sd(void *pvParameters) // Código de teste verificar depois
 {
     esp_err_t ret;
 
@@ -243,7 +245,7 @@ void task_sd(void *pvParameters) // Código de teste verificar depois
         if (ret == ESP_FAIL)
         {
             ESP_LOGE("SD", "Failed to mount filesystem. "
-                             "If you want the card to be formatted, set the CONFIG_EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
+                           "If you want the card to be formatted, set the CONFIG_EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
         }
         else
         {
@@ -306,3 +308,91 @@ void task_sd(void *pvParameters) // Código de teste verificar depois
         ESP_LOGI("SD", "Data written to SD card");
     }
 }
+void task_littlefs(void *pvParameters)
+{
+    // LittleFS INIT
+    ESP_LOGW("LittleFS", "Initializing LittleFS");
+
+    esp_vfs_littlefs_conf_t conf = {
+        .base_path = "/littlefs",
+        .partition_label = "littlefs",
+        .format_if_mount_failed = true,
+        .dont_mount = false,
+    };
+
+    esp_err_t ret = esp_vfs_littlefs_register(&conf);
+
+    if (ret != ESP_OK)
+    {
+        if (ret == ESP_FAIL)
+        {
+            ESP_LOGE("LittleFS", "Failed to mount or format filesystem");
+        }
+        else if (ret == ESP_ERR_NOT_FOUND)
+        {
+            ESP_LOGE("LittleFS", "Failed to find LittleFS partition");
+        }
+        else
+        {
+            ESP_LOGE("LittleFS", "Failed to initialize LittleFS (%s)", esp_err_to_name(ret));
+        }
+    }
+
+    size_t total = 0, used = 0;
+    ret = esp_littlefs_info(conf.partition_label, &total, &used);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE("LittleFS", "Failed to get LittleFS partition information (%s)", esp_err_to_name(ret));
+    }
+    else
+    {
+        ESP_LOGW("LittleFS", "Partition size: total: %d, used: %d", total, used);
+    }
+
+    // Create log file
+    char log_name[32];
+    snprintf(log_name, 32, "%s/flight%ld.bin", conf.base_path, (long int)0);
+    ESP_LOGI("LittleFS", "Creating file %s", log_name);
+    // Use POSIX and C standard library functions to work with files.
+    // First create a file.
+    FILE *f = fopen(log_name, "w");
+    if (f == NULL)
+    {
+        ESP_LOGE("LittleFS", "Failed to open file for writing");
+    }
+
+    while (1)
+    {
+        dados data;
+        dados buffer[LITTLEFS_BUFFER_SIZE / sizeof(dados)];
+
+        // Read data from queue
+        for (int i = 0; i < LITTLEFS_BUFFER_SIZE / sizeof(dados); i++)
+        {
+            // Check if landed
+            xSemaphoreTake(xStatusMutex, portMAX_DELAY);
+            if (STATUS & LANDED)
+            {
+                xSemaphoreGive(xStatusMutex);
+                ESP_LOGW("LittleFS", "Landed, unmounting LittleFS");
+                esp_vfs_littlefs_unregister(conf.partition_label);
+                ESP_LOGI("LittleFS", "LittleFS unmounted");
+                vTaskDelete(NULL);
+            }
+            else
+                xSemaphoreGive(xStatusMutex);
+
+            xQueueReceive(xLittleFSQueue, &data, portMAX_DELAY);
+            buffer[i] = data;
+        }
+
+        // Write buffer to file
+        f = fopen(log_name, "a");
+        if (f == NULL)
+        {
+            ESP_LOGE("LittleFS", "Failed to open file for writing");
+        }
+        fwrite(buffer, sizeof(dados), LITTLEFS_BUFFER_SIZE / sizeof(dados), f);
+        fclose(f);
+        used += sizeof(buffer);
+        ESP_LOGI("Li

@@ -153,6 +153,13 @@ D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_bootloader_format/CMakeFiles/install/local.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/esp_bootloader_format/CMakeFiles/install/strip.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/__idf_app_update.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/blank_ota_data.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/read-otadata.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/read_otadata.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/erase-otadata.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/erase_otadata.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/otadata-flash.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/encrypted-otadata-flash.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/edit_cache.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/rebuild_cache.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/app_update/CMakeFiles/list_install_components.dir
@@ -815,6 +822,13 @@ D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/wifi_provisioning/CMakeFiles/install.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/wifi_provisioning/CMakeFiles/install/local.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/wifi_provisioning/CMakeFiles/install/strip.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/joltwallet__littlefs/CMakeFiles/__idf_joltwallet__littlefs.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/joltwallet__littlefs/CMakeFiles/edit_cache.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/joltwallet__littlefs/CMakeFiles/rebuild_cache.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/joltwallet__littlefs/CMakeFiles/list_install_components.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/joltwallet__littlefs/CMakeFiles/install.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/joltwallet__littlefs/CMakeFiles/install/local.dir
+D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/joltwallet__littlefs/CMakeFiles/install/strip.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/main/CMakeFiles/__idf_main.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/main/CMakeFiles/edit_cache.dir
 D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/main/CMakeFiles/rebuild_cache.dir

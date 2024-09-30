@@ -539,6 +539,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/joltwallet__littlefs/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("D:/TrabalhoFinalSoftwareEmbarcado/ASR3000v3-ESP-IDF/ASR3000v3-ESP-IDF/build/esp-idf/main/cmake_install.cmake")
 endif()
 

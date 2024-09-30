@@ -39,8 +39,7 @@
 #include "esp_err.h"
 #include "esp_vfs_fat.h"
 
-
-
+#include "esp_littlefs.h"
 
 #define BUZZER_GPIO 38
 #define BUTTON_GPIO 0
@@ -54,6 +53,7 @@
 #define SD_SCK 12
 #define SD_CS 10
 #define SD_BUFFER_SIZE 512
+#define LITTLEFS_BUFFER_SIZE 512
 #define E220_RX 36
 #define E220_TX 35
 #define E220_AUX 37
