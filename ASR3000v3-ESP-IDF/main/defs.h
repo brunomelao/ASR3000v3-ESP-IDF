@@ -42,8 +42,6 @@
 #include "esp_littlefs.h"
 
 #define BUZZER_GPIO 38
-#define BUTTON_GPIO 0
-#define RBF_GPIO 4
 #define GPS_RX 14
 #define GPS_TX 21
 #define I2C_SCL 9
@@ -58,17 +56,20 @@
 #define E220_TX 35
 #define E220_AUX 37
 #define E220_BUFFER_SIZE 192 
+#define DROGUE_GPIO 48
+#define MAIN_GPIO 47
 
 #define TIME_ZONE (-3)   //Beijing Time
 #define YEAR_BASE (2000) //date in GPS starts from 2000
 
 // Status flags
-#define ARMED (1 << 0)
-#define SAFE_MODE (1 << 1)
-#define FLYING (1 << 2)
-#define LANDED (1 << 3)
-#define LFS_FULL (1 << 4)
+#define DROGUE_ABERTO (1 << 0)
+#define MAIN_ABERTO (1 << 1)
 
+#define G 9.80665
+
+#define DROGUE_THRESHOLD 20
+#define MAIN_ALTITUDE 500
 typedef struct // size = ? bytes
 {
     int32_t time;

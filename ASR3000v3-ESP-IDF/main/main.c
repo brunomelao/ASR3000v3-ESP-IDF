@@ -1,25 +1,20 @@
 #include "defs.h"
-#include "aquisicao.h"
 
 void task_aquisicao(void *pvParameters);
 void task_lora(void *pvParameters);
 void task_sd(void *pvParameters);
 void task_littlefs(void *pvParameters);
+void task_verifica(void *pvParameters);
 
 void app_main(void)
 {
-    gpio_set_direction(RBF_GPIO, GPIO_MODE_INPUT);
-    gpio_set_pull_mode(RBF_GPIO, GPIO_PULLUP_ONLY);
-
-    gpio_set_direction(BUTTON_GPIO, GPIO_MODE_INPUT);
-    gpio_set_pull_mode(BUTTON_GPIO, GPIO_PULLUP_ONLY);
-
     gpio_reset_pin(BUZZER_GPIO);
     gpio_set_direction(BUZZER_GPIO, GPIO_MODE_OUTPUT);
 
-    // Create Mutexes
+    // Create Mutexes 
     xGPSMutex = xSemaphoreCreateMutex();
     xStatusMutex = xSemaphoreCreateMutex();
+
     // Create Queues
     xAltQueue = xQueueCreate(2, sizeof(float));
     xLittleFSQueue = xQueueCreate(2, sizeof(dados));
@@ -36,10 +31,94 @@ void app_main(void)
     }
     ESP_LOGI("Buzzer", "Inicializado");
 
-    xTaskCreate(task_aquisicao, "Aquisicao", configMINIMAL_STACK_SIZE * 4, NULL, 3, NULL);
-    xTaskCreate(task_lora, "Lora", configMINIMAL_STACK_SIZE * 4, NULL, 6, &xTaskLora);
-    xTaskCreate(task_sd, "SD", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
-    xTaskCreate(task_littlefs, "LittleFS", configMINIMAL_STACK_SIZE * 4, NULL, 5, NULL);
+    xTaskCreate(task_aquisicao, "Aquisicao", 6144, NULL, 3, NULL);
+    xTaskCreate(task_lora, "Lora", 6144, NULL, 6, &xTaskLora);
+    xTaskCreate(task_sd, "SD", 6144, NULL, 5, NULL);
+    xTaskCreate(task_littlefs, "LittleFS", 6144, NULL, 5, NULL);
+    xTaskCreate(task_verifica, "Verifica", 3072, NULL, 5, NULL);
+}
+
+void bmp_acquire(dados *data, bmp280_t *bmp280)
+{
+    float pressure, current_altitude, temp;
+    bmp280_read_float(bmp280, &temp, &pressure, NULL);
+
+    current_altitude = 44330 * (1 - powf(pressure / 101325, 1 / 5.255));
+
+    // Update max altitude
+    if (current_altitude > data->max_altitude)
+    {
+        data->max_altitude = current_altitude;
+    }
+
+    data->bmp_altitude = current_altitude;
+    data->pressure = pressure;
+    data->temperature = temp;
+    // ESP_LOGI("BMP", "Pressure: %.2f Pa, Altitude: %.2f m, Temperature: %.2f °C", pressure, current_altitude, temp);
+}
+
+void mpu6050_acquire(dados *data, mpu6050_dev_t *dev_mpu)
+{
+
+    ESP_ERROR_CHECK(mpu6050_get_motion(dev_mpu, &data->accel, &data->rotation));
+    // Convert accel to m/s^2
+    data->accel.x *= G;
+    data->accel.y *= G;
+    data->accel.z *= G;
+    // ESP_LOGI("MPU", "Acceleration: x=%.4f   y=%.4f   z=%.4f", data->accel.x, data->accel.y, data->accel.z);
+    // ESP_LOGI("MPU", "Rotation:     x=%.4f   y=%.4f   z=%.4f", data->rotation.x, data->rotation.y, data->rotation.z);
+}
+
+static void gps_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+{
+    switch (event_id)
+    {
+    case GPS_UPDATE:
+        xSemaphoreTake(xGPSMutex, portMAX_DELAY);
+        gps = *(gps_t *)event_data;
+        /* print information parsed from GPS statements */
+        ESP_LOGI("GPS", "%d/%d/%d %d:%d:%d => \r\n"
+                        "\t\t\t\t\t\tlatitude   = %.05f°N\r\n"
+                        "\t\t\t\t\t\tlongitude = %.05f°E\r\n"
+                        "\t\t\t\t\t\taltitude   = %.02fm\r\n"
+                        "\t\t\t\t\t\tspeed      = %fm/s",
+                 gps.date.year + YEAR_BASE, gps.date.month, gps.date.day,
+                 gps.tim.hour + TIME_ZONE, gps.tim.minute, gps.tim.second,
+                 gps.latitude, gps.longitude, gps.altitude, gps.speed);
+        xSemaphoreGive(xGPSMutex);
+        break;
+    case GPS_UNKNOWN:
+        /* print unknown statements */
+        ESP_LOGW("GPS", "Unknown statement:%s", (char *)event_data);
+        break;
+    default:
+        break;
+    }
+}
+
+void gps_init(void)
+{
+    // Inicializa o GPS
+    nmea_parser_config_t config = NMEA_PARSER_CONFIG_DEFAULT(); // NMEA parser configuration
+    config.uart.baud_rate = 115200;
+    config.uart.rx_pin = GPS_RX;
+    nmea_parser_handle_t nmea_hdl = nmea_parser_init(&config);  // init NMEA parser library
+    nmea_parser_add_handler(nmea_hdl, gps_event_handler, NULL); // register event handler for NMEA parser library
+}
+
+void voltage_acquire(dados *data, adc_oneshot_unit_handle_t *adc_handle, adc_cali_handle_t *cali_handle)
+{
+    int raw_voltage = 0;
+    int voltage = 0;
+
+    // Read voltage
+    adc_oneshot_read(*adc_handle, ADC_CHANNEL_4, &raw_voltage);
+
+    // Convert raw voltage to voltage
+    adc_cali_raw_to_voltage(*cali_handle, raw_voltage, &voltage);
+
+    // Update voltage
+    data->voltage = (float)voltage * 2 / 1000;
 }
 
 void task_aquisicao(void *pvParameters)
@@ -68,7 +147,7 @@ void task_aquisicao(void *pvParameters)
     ESP_LOGI("MPU", "Gyro range:  %d", dev_mpu.ranges.gyro);
 
     // Inicializacao do GPS
-    // gps_init();
+    gps_init();
 
     // Inicialização do ADC
     adc_oneshot_unit_handle_t adc_handle;
@@ -132,17 +211,13 @@ void task_aquisicao(void *pvParameters)
                  data.rotation.x, data.rotation.y, data.rotation.z,
                  data.latitude, data.longitude, data.gps_altitude);
 
-        // Filas dos dados
-        if (!(data.status & LANDED)) // Se não pousou, envia para filas
-        {
-            if ((data.status & ARMED)) // Se armado, envia para fila de altitude
-                xQueueSend(xAltQueue, &data.bmp_altitude, 0);
-            xQueueSend(xSDQueue, &data, 0); // Envia para fila do SD
-            if (!(data.status & LFS_FULL))  // Se LittleFS não está cheio, envia para LittleFSqueue
-                xQueueSend(xLittleFSQueue, &data, 0);
-        }
+        // Envia para fila do SD, LittleFS e da verificação
+        xQueueSend(xAltQueue, &data.bmp_altitude, 0);
+        xQueueSend(xSDQueue, &data, 0); // Envia para fila do SD
+        xQueueSend(xLittleFSQueue, &data, 0);
+        
         static int n = 0;
-        if (n++ % 10 == 0) // This affects the frequency of the LoRa messages
+        if (n++ % 10 == 0) // A cada 10 iterações, envia para fila do LoRa 
         {
             xQueueSend(xLoraQueue, &data, 0); // Send to LoRa queue
         }
@@ -201,9 +276,6 @@ void task_sd(void *pvParameters) // Código de teste verificar depois
 {
     esp_err_t ret;
 
-    // Options for mounting the filesystem.
-    // If format_if_mount_failed is set to true, SD card will be partitioned and
-    // formatted in case when mounting fails.
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = true,
         .max_files = 5,
@@ -278,19 +350,6 @@ void task_sd(void *pvParameters) // Código de teste verificar depois
         // Read data from queue
         for (int i = 0; i < SD_BUFFER_SIZE / sizeof(dados); i++)
         {
-            // Check if landed
-            xSemaphoreTake(xStatusMutex, portMAX_DELAY);
-            if (STATUS & LANDED)
-            {
-                xSemaphoreGive(xStatusMutex);
-                ESP_LOGW("SD", "Landed, unmounting SD card");
-                esp_vfs_fat_sdcard_unmount(mount_point, card);
-                ESP_LOGI("SD", "Card unmounted");
-                vTaskDelete(NULL); // Delete task
-            }
-            else
-                xSemaphoreGive(xStatusMutex);
-
             xQueueReceive(xSDQueue, &data, portMAX_DELAY);
             buffer[i] = data;
         }
@@ -369,19 +428,6 @@ void task_littlefs(void *pvParameters)
         // Read data from queue
         for (int i = 0; i < LITTLEFS_BUFFER_SIZE / sizeof(dados); i++)
         {
-            // Check if landed
-            xSemaphoreTake(xStatusMutex, portMAX_DELAY);
-            if (STATUS & LANDED)
-            {
-                xSemaphoreGive(xStatusMutex);
-                ESP_LOGW("LittleFS", "Landed, unmounting LittleFS");
-                esp_vfs_littlefs_unregister(conf.partition_label);
-                ESP_LOGI("LittleFS", "LittleFS unmounted");
-                vTaskDelete(NULL);
-            }
-            else
-                xSemaphoreGive(xStatusMutex);
-
             xQueueReceive(xLittleFSQueue, &data, portMAX_DELAY);
             buffer[i] = data;
         }
@@ -395,4 +441,66 @@ void task_littlefs(void *pvParameters)
         fwrite(buffer, sizeof(dados), LITTLEFS_BUFFER_SIZE / sizeof(dados), f);
         fclose(f);
         used += sizeof(buffer);
-        ESP_LOGI("Li
+        ESP_LOGI("LittleFS", "Data written to LittleFS.");
+    }
+}
+
+void task_verifica(void *pvParameters)
+{
+    gpio_set_direction(DROGUE_GPIO, GPIO_MODE_OUTPUT);
+
+    gpio_set_direction(MAIN_GPIO, GPIO_MODE_OUTPUT);
+
+    float current_altitude = 0;
+    float max_altitude = 0;
+    float altitude_inicio = 0;
+
+    xQueueReceive(xAltQueue, &current_altitude, portMAX_DELAY);
+    altitude_inicio = current_altitude;
+
+    while (1)
+    {
+        xQueueReceive(xAltQueue, &current_altitude, portMAX_DELAY);
+        // Update max altitude
+        if (current_altitude > max_altitude)
+        {
+            max_altitude = current_altitude;
+        }
+        xSemaphoreTake(xStatusMutex, portMAX_DELAY);
+        if (!(STATUS & DROGUE_ABERTO)) // If drogue não abriu
+        {
+            if (current_altitude < max_altitude - DROGUE_THRESHOLD) // se altitude atual for menor que a altitude máxima - threshold
+            {
+                STATUS |= DROGUE_ABERTO;
+                xSemaphoreGive(xStatusMutex);
+                gpio_set_level(DROGUE_GPIO, 1);
+                gpio_set_level(BUZZER_GPIO, 1);
+                ESP_LOGW("Verifica", "Drogue aberto");
+                vTaskDelay(pdMS_TO_TICKS(500));
+                gpio_set_level(DROGUE_GPIO, 0);
+            }
+            else
+                xSemaphoreGive(xStatusMutex);
+        }
+        else if (!(STATUS & MAIN_ABERTO)) // Se drogue abriu, verifica se main deve abrir
+        {
+            if (current_altitude < altitude_inicio + MAIN_ALTITUDE) // Se altitude atual for menor que a altitude inicial somada a altitude de abertura da main
+            {
+                STATUS |= MAIN_ABERTO;
+                xSemaphoreGive(xStatusMutex);
+
+                gpio_set_level(MAIN_GPIO, 1);
+                ESP_LOGW("Verifica", "Main aberto");
+                vTaskDelay(pdMS_TO_TICKS(500));
+                gpio_set_level(MAIN_GPIO, 0);
+
+                // Delete task
+                vTaskDelete(NULL);
+            }
+            else
+                xSemaphoreGive(xStatusMutex);
+        }
+        else
+            xSemaphoreGive(xStatusMutex);
+    }
+}
